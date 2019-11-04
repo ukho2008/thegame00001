@@ -3,25 +3,22 @@
 
 import pygame
 import player
+import blocks
+import pyganim
 
-WIN_WIDTH = 640
-WIN_HEIGHT = 480
+WIN_WIDTH = 1280
+WIN_HEIGHT = 832
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT)
 BACKGROUND = "#004400"
-
-
-PF_WIDTH = PF_HEIGHT = 32
-PF_COLOR = "#FF6262"
+PF_WIDTH = PF_HEIGHT = 64
 
 level = [
     "********************",
     "*                  *",
-    "*                  *",
     "*      ***         *",
     "*                  *",
     "*                  *",
-    "*                  *",
-    "*        ****      *",
+    "*           *****  *",
     "*                  *",
     "*                  *",
     "*  **********      *",
@@ -30,9 +27,15 @@ level = [
     "*                  *",
     "********************"
 ]
-
+platforms = []
 def main():
     pygame.init()
+
+    hero = player.Player(100, 100)
+    left = right = up = False
+
+    entities = pygame.sprite.Group()
+    entities.add(hero)
 
     timer = pygame.time.Clock()
 
@@ -41,8 +44,16 @@ def main():
     bg = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
     bg.fill(pygame.Color(BACKGROUND))
 
-    hero = player.Player(55, 55)
-    left = right = up = False
+    x = y = 0
+    for row in level:
+        for col in row:
+            if col == "*":
+                pf = blocks.Platform(x, y)
+                entities.add(pf)
+                platforms.append(pf)
+            x += PF_WIDTH
+        y += PF_HEIGHT
+        x = 0
 
     done = True
 
@@ -65,22 +76,11 @@ def main():
             if e.type == pygame.KEYUP and e.key == pygame.K_RIGHT:
                 right = False
             if e.type == pygame.KEYUP and e.key == pygame.K_UP:
-                up = False 
-
+                up = False
+        
         bg.fill(pygame.Color(BACKGROUND))
-        x = y = 0
-        for row in level:
-            for col in row:
-                if col == "*":
-                    pf = pygame.Surface((PF_WIDTH, PF_HEIGHT))
-                    pf.fill(pygame.Color(PF_COLOR))
-                    bg.blit(pf, (x, y))
-                x += PF_WIDTH
-            y += PF_HEIGHT
-            x = 0
-
-        hero.update(left, right, up)
-        hero.draw(bg)
+        hero.update(left, right, up, platforms)
+        entities.draw(bg)
         main_win.blit(bg, (0, 0))
         pygame.display.flip()
 
